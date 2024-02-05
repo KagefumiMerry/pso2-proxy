@@ -11,4 +11,4 @@ rand = "0.8.5"
 rsa = "0.9.6"
 tokio = {version = "1.34.0", features = ["net", "rt-multi-thread", "macros", "time", "fs"] }
 # pso2packetlib = { git = "https://github.com/PhantasyServer/pso2-protocol-lib", rev = "6c3fae2", features = ["connection", "ngs_enc", "proxy", "ppac"] }
-pso2packetlib = { git = "https://github.com/PhantasyServer/pso2-protocol-lib", rev = "fc85689", features = ["connection", "ngs_enc", "proxy", "ppac"] }
+pso2packetlib = { git = "https://github.com/PhantasyServer/pso2-protocol-lib", rev = "6c3fae2", features = ["connection", "ngs_enc", "proxy", "ppac"] }
