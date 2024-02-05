@@ -39,14 +39,28 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let mut info_listeners: Vec<TcpListener> = Vec::new();
     let mut server_listeners: HashMap<u16, (TcpListener, SocketAddr)> = HashMap::new();
     let to_open = Arc::new(Mutex::new(Vec::<(SocketAddr, u16)>::new()));
+    info_listeners.push(TcpListener::bind("0.0.0.0:12099")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12199")?);
-    info_listeners.push(TcpListener::bind("0.0.0.0:12180")?);
-    info_listeners.push(TcpListener::bind("0.0.0.0:12280")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12299")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12399")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12499")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12599")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12699")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12799")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12899")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12999")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:13000")?);
+	/*
+    info_listeners.push(TcpListener::bind("0.0.0.0:12094")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12194")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12294")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12394")?);
     info_listeners.push(TcpListener::bind("0.0.0.0:12494")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12594")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12694")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12794")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12894")?);
+    info_listeners.push(TcpListener::bind("0.0.0.0:12994")?);*/
     info_listeners
         .iter_mut()
         .map(|x| x.set_nonblocking(true).unwrap())
@@ -62,7 +76,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                         let _guard = rt.enter();
                         tokio::spawn(handle_con(
                             s,
-                            SocketAddr::new([40, 91, 76, 146].into(), 12199),
+                            SocketAddr::new([202, 234, 45, 199].into(), 12099),
                             Arc::clone(&to_open),
                         ));
                     }

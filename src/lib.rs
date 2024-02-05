@@ -1,6 +1,10 @@
 use pso2packetlib::ppac::Direction;
-use pso2packetlib::protocol::{Packet, PacketType};
+use pso2packetlib::PrivateKey;
+use pso2packetlib::PublicKey;
+use pso2packetlib::protocol::{Packet, PacketType, ProtocolRW};
 use pso2packetlib::Connection;
+// use std::time::SystemTime;
+use std::fs::File;
 use std::io::{self, Cursor, Read, Seek, SeekFrom, Write};
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
@@ -30,8 +34,8 @@ pub async fn handle_con(
     let mut client_stream = Connection::new(
         in_stream,
         PacketType::NGS,
-        Some("client_privkey.pem".into()),
-        None,
+        PrivateKey::Path("client_privkey.pem".into()),
+        PublicKey::None,
     );
     let serv_stream = std::net::TcpStream::connect(address)?;
     serv_stream.set_nonblocking(true)?;
@@ -40,8 +44,8 @@ pub async fn handle_con(
     let mut serv_stream = Connection::new(
         serv_stream,
         PacketType::NGS,
-        Some("client_privkey.pem".into()),
-        Some("server_pubkey.pem".into()),
+        PrivateKey::Path("client_privkey.pem".into()),
+        PublicKey::Path("server_pubkey.pem".into()),
     );
 
     serv_stream.create_ppac(
@@ -121,6 +125,7 @@ fn parse_paket(
     to_open: &Arc<Mutex<Vec<(SocketAddr, u16)>>>,
     callback_ip: Ipv4Addr,
 ) -> io::Result<()> {
+	
     if let Packet::Unknown(data) = packet {
         let id = data.0.id;
         let sub_id = data.0.subid;
@@ -129,19 +134,20 @@ fn parse_paket(
             (0x11, 0x2c) => replace_balance(&mut data.1[..], to_open, callback_ip)?,
             (0x11, 0x13) => replace_pso2(&mut data.1[..], to_open, callback_ip)?,
             (0x11, 0x17) => replace_pq(&mut data.1[..], to_open, callback_ip)?,
-            (0x11, 0x4F) => replace_aq(&mut data.1[..], to_open, callback_ip)?,
+			(0x11, 0x4F) => replace_aq(&mut data.1[..], to_open, callback_ip)?,
             //creative space
             (0x11, 0x121) => replace_cc(&mut data.1[..], to_open, callback_ip)?,
             //shared ship
             (0x11, 0x21) => replace_shareship(&mut data.1[..], to_open, callback_ip)?,
             _ => {}
         }
+		
     } else if let Packet::ShipList(ships) = packet {
         for ship in &mut ships.ships {
             let ip = ship.ip;
             // In JP version, port distribution is from 12000 (i.e. Ship 10) to 12900 (for Ship 9) so the formula need change to something like
-            // let port = (12000 + (100 * (ship.id / 1000 % 10) )) as u16;
-            let port = (12181 + (100 * (ship.id / 1000 - 1))) as u16;
+            let port = (12000 + (100 * (ship.id / 1000 % 10) )) as u16;
+            // let port = (12181 + (100 * (ship.id / 1000 - 1))) as u16;
             to_open
                 .lock()
                 .unwrap()
@@ -151,6 +157,8 @@ fn parse_paket(
     }
     Ok(())
 }
+
+
 
 fn write_packet(id: u8, subid: u16, flags: u8) {
     let dir = if flags == 0 { "C->S" } else { "S->C" };
@@ -203,7 +211,7 @@ fn replace_pso2(
     Ok(())
 }
 
-fn replace_pq(
+fn replace_aq(
     buff: &mut [u8],
     to_open: &Arc<Mutex<Vec<(SocketAddr, u16)>>>,
     callback_ip: Ipv4Addr,
@@ -227,7 +235,9 @@ fn replace_pq(
     Ok(())
 }
 
-fn replace_aq(
+
+
+fn replace_pq(
     buff: &mut [u8],
     to_open: &Arc<Mutex<Vec<(SocketAddr, u16)>>>,
     callback_ip: Ipv4Addr,
