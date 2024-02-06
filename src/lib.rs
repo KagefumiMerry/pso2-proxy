@@ -1,9 +1,8 @@
 use pso2packetlib::ppac::Direction;
 use pso2packetlib::PrivateKey;
 use pso2packetlib::PublicKey;
-use pso2packetlib::protocol::{Packet, PacketType, ProtocolRW};
-use pso2packetlib::Connection;
-// use std::time::SystemTime;
+use pso2packetlib::ProxyConnection;
+use pso2packetlib::protocol::{ProxyPacket, PacketType, ProtocolRW};
 use std::fs::File;
 use std::io::{self, Cursor, Read, Seek, SeekFrom, Write};
 use std::net::{Ipv4Addr, SocketAddr};
@@ -31,7 +30,7 @@ pub async fn handle_con(
         std::net::IpAddr::V4(x) => x,
         std::net::IpAddr::V6(_) => unimplemented!(),
     };
-    let mut client_stream = Connection::new(
+    let mut client_stream = ProxyConnection::new(
         in_stream,
         PacketType::NGS,
         PrivateKey::Path("client_privkey.pem".into()),
@@ -41,7 +40,7 @@ pub async fn handle_con(
     serv_stream.set_nonblocking(true)?;
     serv_stream.set_nodelay(true)?;
     serv_stream.set_ttl(100)?;
-    let mut serv_stream = Connection::new(
+    let mut serv_stream = ProxyConnection::new(
         serv_stream,
         PacketType::NGS,
         PrivateKey::Path("client_privkey.pem".into()),
@@ -120,13 +119,13 @@ pub async fn handle_con(
 }
 
 fn parse_paket(
-    packet: &mut Packet,
+    packet: &mut ProxyPacket,
     dir: u8,
     to_open: &Arc<Mutex<Vec<(SocketAddr, u16)>>>,
     callback_ip: Ipv4Addr,
 ) -> io::Result<()> {
 	
-    if let Packet::Unknown(data) = packet {
+    if let ProxyPacket::Unknown(data) = packet {
         let id = data.0.id;
         let sub_id = data.0.subid;
         write_packet(id, sub_id, dir);
@@ -142,7 +141,7 @@ fn parse_paket(
             _ => {}
         }
 		
-    } else if let Packet::ShipList(ships) = packet {
+    } else if let ProxyPacket::ShipList(ships) = packet {
         for ship in &mut ships.ships {
             let ip = ship.ip;
             // In JP version, port distribution is from 12000 (i.e. Ship 10) to 12900 (for Ship 9) so the formula need change to something like
